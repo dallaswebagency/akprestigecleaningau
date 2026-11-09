@@ -78,5 +78,99 @@
     setTimeout(show, 5000);
   })();
 
+  // free quote wizard
+  (function () {
+    var f = document.getElementById('wizard'); if (!f) return;
+    var sel = {}, money = function (n) { return '$' + n; };
+    function render() {
+      var ul = document.getElementById('sumList'), tot = 0, html = '';
+      Object.keys(sel).forEach(function (k) {
+        var it = sel[k]; if (!it.q) return;
+        var line = it.p * it.q; tot += line;
+        html += '<li><span>' + it.l + (it.q > 1 ? ' &times; ' + it.q : '') + '</span><span>' + money(line) + '</span></li>';
+      });
+      ul.innerHTML = html;
+      document.getElementById('sumEmpty').hidden = !!html;
+      document.getElementById('sumTot').hidden = !html;
+      document.getElementById('totVal').textContent = money(tot);
+    }
+    f.querySelectorAll('.qty').forEach(function (q) {
+      var k = q.dataset.key, o = q.querySelector('output');
+      function set(n) { n = Math.max(0, n); o.textContent = n; sel[k] = { l: q.dataset.label, p: +q.dataset.price, q: n }; render(); }
+      q.querySelector('.q-p').addEventListener('click', function () { set(+o.textContent + 1); });
+      q.querySelector('.q-m').addEventListener('click', function () { set(+o.textContent - 1); });
+    });
+    f.querySelectorAll('.pick').forEach(function (b) {
+      b.addEventListener('click', function () {
+        var on = !b.classList.contains('sel');
+        f.querySelectorAll('.pick[data-group="' + b.dataset.group + '"]').forEach(function (x) { x.classList.remove('sel'); x.textContent = 'Select'; delete sel[x.dataset.key]; });
+        if (on) { b.classList.add('sel'); b.textContent = 'Selected'; sel[b.dataset.key] = { l: b.dataset.label + (b.dataset.key.indexOf('bond') === 0 ? ' (Bond Clean)' : ' (Regular Clean)'), p: +b.dataset.price, q: 1 }; }
+        render();
+      });
+    });
+    f.querySelectorAll('.tog').forEach(function (b) {
+      b.addEventListener('click', function () {
+        var on = b.classList.toggle('sel'); b.textContent = on ? 'Added' : 'Add to quote';
+        if (on) sel[b.dataset.key] = { l: b.dataset.label, p: +b.dataset.price, q: 1 }; else delete sel[b.dataset.key];
+        render();
+      });
+    });
+    var steps = f.querySelectorAll('.wstep'), dots = document.querySelectorAll('#steps li'), cur = 1;
+    function go(n) {
+      cur = n;
+      steps.forEach(function (s) { s.classList.toggle('on', +s.dataset.step === n); });
+      dots.forEach(function (d) { var i = +d.dataset.s; d.classList.toggle('on', i === n); d.classList.toggle('done', i < n); });
+      if (n === 4) review();
+      var top = document.getElementById('steps').getBoundingClientRect().top + window.scrollY - 110;
+      window.scrollTo({ top: top, behavior: 'smooth' });
+    }
+    function valid(n) {
+      var ok = true, step = f.querySelector('.wstep[data-step="' + n + '"]');
+      if (n === 1 && !Object.keys(sel).some(function (k) { return sel[k].q; })) {
+        alertBox('Please choose at least one service or add-on to continue.'); return false;
+      }
+      step.querySelectorAll('[required]').forEach(function (el) {
+        var bad = !el.value || (el.type === 'email' && !/^\S+@\S+\.\S+$/.test(el.value));
+        el.closest('.field').classList.toggle('err', bad); if (bad) ok = false;
+      });
+      if (!ok) { var e = step.querySelector('.err input,.err select'); if (e) e.focus(); }
+      return ok;
+    }
+    function alertBox(msg) {
+      var b = f.querySelector('.w-msg');
+      if (!b) { b = document.createElement('p'); b.className = 'qnote w-msg'; b.style.borderRadius = '14px'; b.style.marginBottom = '16px'; f.querySelector('.wstep[data-step="1"] .wnav').before(b); }
+      b.textContent = msg;
+    }
+    function data() {
+      var fd = new FormData(f), out = [];
+      var items = Object.keys(sel).filter(function (k) { return sel[k].q; }).map(function (k) { var i = sel[k]; return i.l + (i.q > 1 ? ' x ' + i.q : '') + ' (' + money(i.p * i.q) + ')'; });
+      out.push(['Services', items.join('; ')]);
+      out.push(['Estimated from', document.getElementById('totVal').textContent]);
+      fd.forEach(function (v, k) { if (v) out.push([k, v]); });
+      return out;
+    }
+    function esc(t) { var d = document.createElement('div'); d.textContent = t; return d.innerHTML; }
+    function review() {
+      document.getElementById('review').innerHTML = '<div class="review-list">' + data().map(function (r) { return '<div><span>' + esc(r[0]) + '</span><span>' + esc(r[1]) + '</span></div>'; }).join('') + '</div>';
+    }
+    f.querySelectorAll('.w-next').forEach(function (b) { b.addEventListener('click', function () { if (valid(cur)) { var m = f.querySelector('.w-msg'); if (m) m.remove(); go(cur + 1); } }); });
+    f.querySelectorAll('.w-back').forEach(function (b) { b.addEventListener('click', function () { go(cur - 1); }); });
+    f.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var body = 'Hi AK Prestige Cleaning,\n\nI would like a free quote.\n\n' + data().map(function (r) { return r[0] + ': ' + r[1]; }).join('\n');
+      window.location.href = 'mailto:Bailey@akprestigecleaningau.com?subject=' + encodeURIComponent('Free Quote Request') + '&body=' + encodeURIComponent(body);
+      document.getElementById('sent').classList.add('show');
+    });
+    // preselect from ?service= is not needed; start at step 1
+  })();
+
+  // service tabs
+  document.querySelectorAll('.stabs button').forEach(function (b) {
+    b.addEventListener('click', function () {
+      document.querySelectorAll('.stabs button').forEach(function (x) { x.classList.toggle('on', x === b); });
+      document.querySelectorAll('.tpanel').forEach(function (p) { p.classList.toggle('on', p.id === b.dataset.t); });
+    });
+  });
+
   var y = document.getElementById('yr'); if (y) y.textContent = new Date().getFullYear();
 })();
