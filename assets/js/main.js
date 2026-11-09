@@ -55,5 +55,28 @@
     });
   });
 
+  // review pop-ups: show up to 2 Google reviews once per visit
+  (function () {
+    var box = document.getElementById('rtoast'), R = window.AK_REVIEWS || [];
+    if (!box || !R.length) return;
+    try { if (sessionStorage.getItem('akRevShown')) return; sessionStorage.setItem('akRevShown', '1'); } catch (e) {}
+    var order = R.slice().sort(function () { return Math.random() - .5; }).slice(0, 2), i = 0, closed = false, t;
+    function fill(r) {
+      box.querySelector('.rt-name').textContent = r.n;
+      box.querySelector('.rt-when').textContent = r.w;
+      box.querySelector('.rt-av').textContent = r.n.charAt(0);
+      box.querySelector('.rt-text').textContent = '“' + r.t + '”';
+    }
+    function hide(next) { box.classList.remove('show'); setTimeout(function () { box.hidden = true; if (next) next(); }, 450); }
+    function show() {
+      if (closed || i >= order.length) return;
+      fill(order[i++]); box.hidden = false;
+      requestAnimationFrame(function () { requestAnimationFrame(function () { box.classList.add('show'); }); });
+      t = setTimeout(function () { hide(function () { t = setTimeout(show, 6000); }); }, 8000);
+    }
+    box.querySelector('.rt-x').addEventListener('click', function () { closed = true; clearTimeout(t); hide(); });
+    setTimeout(show, 5000);
+  })();
+
   var y = document.getElementById('yr'); if (y) y.textContent = new Date().getFullYear();
 })();
