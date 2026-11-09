@@ -172,5 +172,21 @@
     });
   });
 
+  // pricing toggle (regular / bond)
+  var pt = document.querySelector('.p2-toggle');
+  if (pt) pt.querySelectorAll('button').forEach(function (b) {
+    b.addEventListener('click', function () {
+      var m = b.dataset.mode;
+      pt.querySelectorAll('button').forEach(function (x) { x.classList.toggle('on', x === b); });
+      pt.classList.toggle('bond', m === 'bond');
+      document.querySelectorAll('.pricing2 [data-res]').forEach(function (el) {
+        el.classList.add('flip');
+        setTimeout(function () { el.textContent = el.dataset[m]; el.classList.remove('flip'); }, 180);
+      });
+      var h = document.querySelector('.pricing2 h2');
+      if (h) h.innerHTML = m === 'bond' ? 'Bond Cleaning <em class="accent">Price List</em>' : 'Residential Cleaning <em class="accent">Price List</em>';
+    });
+  });
+
   var y = document.getElementById('yr'); if (y) y.textContent = new Date().getFullYear();
 })();
