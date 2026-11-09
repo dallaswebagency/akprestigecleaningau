@@ -807,3 +807,16 @@ textarea{min-height:110px;resize:vertical}
 @media (max-width:1100px){.ihero .wrap{grid-template-columns:1fr;gap:34px}.ih-side{align-items:flex-start;flex-direction:row;flex-wrap:wrap}.ih-seal{display:none}.ob-grid{grid-template-columns:1fr 1fr}}
 @media (max-width:820px){.ob-grid{grid-template-columns:1fr}.ihero .wrap{padding:60px 0 70px}.ihero.ih-contact .wrap{padding-bottom:120px}}
 .ihero .loc{background:rgba(142,182,220,.18);color:#fff;border:1px solid rgba(142,182,220,.45)}.ihero .loc .dot{background:var(--sky)}
+/* mobile fixes */
+.mono{position:relative}
+.chips label{position:relative}
+.chips input{left:0;top:0;width:1px;height:1px}
+html,body{overflow-x:clip}
+@media (max-width:820px){
+  .site-footer li a,.fcontact b a{display:inline-block;padding:8px 0}
+  .site-footer li{margin-bottom:2px}
+  .call-chip{padding-right:16px}
+  .btn{min-height:46px}
+  .topbar a{padding:8px 0}
+}
+@media (max-width:820px){.fbottom{padding-right:64px}}
